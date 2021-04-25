@@ -1,0 +1,17 @@
+#header {
+  margin-top: 10%;
+  margin-bottom: 5%;
+}
+
+#expenses_header {
+  margin: 5% 20%;
+}
+
+.submit_header {
+  margin-top: 3%;
+}
+
+#transaction_logs {
+  width: 60%;
+  margin: 10% 25%;
+}
