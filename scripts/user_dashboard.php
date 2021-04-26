@@ -31,18 +31,33 @@ if (isset($_COOKIE['user_id'])) {
 }
 
 //get income transaction logs
-$incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
-    "FROM income " .
-    "WHERE user_id=$user_id";
+//sort and filter income table
+$columns = array('inc_name', 'inc_amount', 'inc_date');
+$column = isset($_GET['column']) && in_array($_GET['column'], $columns) ? $_GET['column'] : $columns[2];
+$sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
+
+if ($_REQUEST['column']) {
+    $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
+        "FROM income WHERE user_id=$user_id" .
+        " ORDER BY $column $sort_order" ;
+} else {
+    $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
+        "FROM income " .
+        "WHERE user_id=$user_id";
+}
 
 $income_logs = mysqli_query($connection, $incomes);
-/* $total = 0;
 
-while ($row = mysqli_fetch_array($income_logs)) {
-    $total += $row['inc_amount'];
-} */
+if (!$income_logs) {
+    handle_error("unable to get income data", mysqli_error($connection));
+} else {
+    $up_or_down = str_replace(array('ASC','DESC'), array('up','down'), $sort_order); 
+	$asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
+	$add_class = ' class="highlight"';
+}
 
 //get expenses transaction logs
+
 $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
     "FROM expenses " .
     "WHERE user_id=$user_id";
@@ -84,20 +99,19 @@ $total_expenses = get_total_expenses($connection, $user_id);
         <table class="table table-success table-sm col-md-4">
             <thead class="thead-light">
                 <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Date</th>
+                    <th scope="col"><a href="user_dashboard.php?column=inc_name&order=<?php echo $asc_or_desc; ?>">Name<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?column=inc_amount&order=<?php echo $asc_or_desc; ?>">Amount<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?column=inc_date&order=<?php echo $asc_or_desc; ?>">Date<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
                 </tr>
             </thead>
+            <?php while ($row = mysqli_fetch_assoc($income_logs)): ?>
             <tbody>
-                <?php
-                    while ($row = mysqli_fetch_array($income_logs)) {
-                    echo "<tr><th class='scope'>" . "<a href='../scripts/transaction_card.php?trans_type=income&trans_id={$row['inc_id']}'>" . 
-                    $row['inc_name'] . "</a></th>" . 
-                    "<td>" . $row['inc_amount'] . "€" . "</td>" . 
-                    "<td>" . $row['inc_date'] . "</td>" . "</tr>";
-                    }
-                ?>    
+                <tr>
+                    <td<?php echo $column = 'inc_name' ? $add_class : '' ;?>><a href="../scripts/transaction_card.php?trans_type=expenses&trans_id=<?php echo $row['inc_id']; ?>"><?php echo $row['inc_name']; ?></a</td>
+                    <td<?php echo $column = 'inc_amount' ? $add_class : '' ;?>><?php echo $row['inc_amount']; ?></td>
+                    <td<?php echo $column = 'inc_date' ? $add_class : ''; ?>><?php echo $row['inc_date']; ?></td>
+                </tr>
+                <?php endwhile; ?>
             </tbody>
         </table>
     </div>
