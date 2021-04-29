@@ -39,7 +39,7 @@ $sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'D
 if ($_REQUEST['column']) {
     $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
         "FROM income WHERE user_id=$user_id" .
-        " ORDER BY $column $sort_order" ;
+        " ORDER BY $column $sort_order";
 } else {
     $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
         "FROM income " .
@@ -57,12 +57,29 @@ if (!$income_logs) {
 }
 
 //get expenses transaction logs
+$columns_exp = array('exp_name', 'exp_amount', 'exp_date');
+$column = isset($_GET['column']) && in_array($_GET['column'], $columns_exp) ? $_GET['column'] : $columns_exp[2];
+$sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
 
-$expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
-    "FROM expenses " .
-    "WHERE user_id=$user_id";
+if ($_REQUEST['column']) {
+    $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
+        "FROM expenses WHERE user_id=$user_id " .
+        "ORDER BY $column $sort_order";
+} else {
+    $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
+    "FROM expenses" .
+    " WHERE user_id=$user_id";
+}
 
 $expenses_logs = mysqli_query($connection, $expenses);
+
+if (!$expenses_logs) {
+    handle_error("unable to get expenses data", mysqli_error($connection));
+} else {
+    $up_or_down = str_replace(array('ASC','DESC'), array('up','down'), $sort_order); 
+	$asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
+	$add_class = ' class="highlight"';
+}
 
 $total_income = get_total_income($connection, $user_id);
 $total_expenses = get_total_expenses($connection, $user_id);
@@ -107,7 +124,7 @@ $total_expenses = get_total_expenses($connection, $user_id);
             <?php while ($row = mysqli_fetch_assoc($income_logs)): ?>
             <tbody>
                 <tr>
-                    <td<?php echo $column = 'inc_name' ? $add_class : '' ;?>><a href="../scripts/transaction_card.php?trans_type=expenses&trans_id=<?php echo $row['inc_id']; ?>"><?php echo $row['inc_name']; ?></a</td>
+                    <td<?php echo $column = 'inc_name' ? $add_class : '' ;?>><a href="../scripts/transaction_card.php?trans_type=income&trans_id=<?php echo $row['inc_id']; ?>"><?php echo $row['inc_name']; ?></a</td>
                     <td<?php echo $column = 'inc_amount' ? $add_class : '' ;?>><?php echo $row['inc_amount']; ?></td>
                     <td<?php echo $column = 'inc_date' ? $add_class : ''; ?>><?php echo $row['inc_date']; ?></td>
                 </tr>
@@ -120,20 +137,20 @@ $total_expenses = get_total_expenses($connection, $user_id);
         <table class="table table-danger table-sm col-md-4">
             <thead class="thead-light">
                 <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Date</th>
+                    <th scope="col"><a href="user_dashboard.php?column=exp_name&order=<?php echo $asc_or_desc; ?>">Name<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?column=exp_amount&order=<?php echo $asc_or_desc; ?>">Amount<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?column=exp_date&order=<?php echo $asc_or_desc; ?>">Date<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
                 </tr>
             </thead>
             <tbody>
-                <?php
-                    while ($row = mysqli_fetch_array($expenses_logs)) {
-                    echo "<tr><th class='scope'>" . "<a href='../scripts/transaction_card.php?trans_type=expenses&trans_id={$row['exp_id']}'>" .
-                    $row['exp_name'] . "</a></th>" . 
-                    "<td>" . "-" . $row['exp_amount'] . "€" . "</td>" . 
-                    "<td>" . $row['exp_date'] . "</td>" . "</tr>";
-                    }
-                ?>    
+            <?php while ($row = mysqli_fetch_assoc($expenses_logs)): ?>
+            <tbody>
+                <tr>
+                    <td<?php echo $column = 'exp_name' ? $add_class : '' ;?>><a href="../scripts/transaction_card.php?trans_type=expenses&trans_id=<?php echo $row['exp_id']; ?>"><?php echo $row['exp_name']; ?></a</td>
+                    <td<?php echo $column = 'exp_amount' ? $add_class : '' ;?>><?php echo $row['exp_amount']; ?></td>
+                    <td<?php echo $column = 'exp_date' ? $add_class : ''; ?>><?php echo $row['exp_date']; ?></td>
+                </tr>
+                <?php endwhile; ?>
             </tbody>
         </table>
     </div>
