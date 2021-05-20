@@ -17,7 +17,7 @@ function print_dev_error($message) {
 function handle_error($user_error_msg, $system_error_msg) {
     header("Location: errors.php?" .
         "user_error_msg={$user_error_msg}$" .
-        "system_error_msg={}$system_error_msg");
+        "system_error_msg={$system_error_msg}");
     exit();
 }
 

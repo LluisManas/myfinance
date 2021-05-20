@@ -1,7 +1,7 @@
 <?php
 
-require_once('../scripts/db_connection.php');
-require_once('../scripts/config.php');
+require_once("../scripts/config.php");
+require_once("../scripts/db_connection.php");
 
 ?>
 
@@ -28,14 +28,12 @@ require_once('../scripts/config.php');
                 <div class="form-group">
                     <label for="email">Email:</label><br />
                     <input type="text" class="form-control" name="email" /><br />
-                    <label for="username">Username:</label><br />
-                    <input type="text" class="form-control" name="username" /><br />
                     <label for="password">Password:</label><br />
                     <input type="password" class="form-control" name="password" />
                 </div>
             </fieldset>
             <fieldset>
-                <input class="btn btn-primary" type="submit" value="Create Profile" />
+                <input class="btn btn-primary" type="submit" value="Login" />
                 <button class="btn btn-outline-secondary"><a href="../finance01/index.html">Cancel</a></button>
             </fieldset>
         </form>

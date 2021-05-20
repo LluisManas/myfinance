@@ -4,14 +4,11 @@ require_once('../scripts/config.php');
 require_once('../scripts/db_connection.php');
 require_once('../scripts/message.php');
 require_once('../scripts/navbar.php');
-require_once('../scripts/transaction_logs.php');
+//require_once('../scripts/transaction_logs.php');
 require_once('../scripts/total_income.php');
+//require_once('../scripts/monthly_expenses.php');
 
-if (isset($_COOKIE['user_id'])) {
-    $user_id = $_COOKIE['user_id'];
-    $username = $_COOKIE['username'];
-    $success_msg = $_REQUEST['success_msg'] ?? null;
-} else {
+if (!isset($_COOKIE['user_id'])) {
     $user_id = $_REQUEST['user_id'];
     $success_msg = $_REQUEST['success_msg'] ?? null;
 
@@ -28,61 +25,85 @@ if (isset($_COOKIE['user_id'])) {
     } else {
         $error_msg = "There was a problem with your account";
     }
+} else {
+    $user_id = $_COOKIE['user_id'];
+    $username = $_COOKIE['username'];
+    $success_msg = $_REQUEST['success_msg'] ?? null;
 }
 
 //get income transaction logs
 //sort and filter income table
-$columns = array('inc_name', 'inc_amount', 'inc_date');
-$column = isset($_GET['column']) && in_array($_GET['column'], $columns) ? $_GET['column'] : $columns[2];
-$sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
-
-if ($_REQUEST['column']) {
-    $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
-        "FROM income WHERE user_id=$user_id" .
-        " ORDER BY $column $sort_order";
-} else {
+if (!isset($_REQUEST['column'])) {
     $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
         "FROM income " .
         "WHERE user_id=$user_id";
-}
+    $income_logs = mysqli_query($connection, $incomes);
 
-$income_logs = mysqli_query($connection, $incomes);
-
-if (!$income_logs) {
-    handle_error("unable to get income data", mysqli_error($connection));
+    if (!$income_logs) {
+        handle_error("unable to get income data", mysqli_error($connection));
+    } else {
+        $add_class = ' class="highlight"';
+        $asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
+    }
 } else {
-    $up_or_down = str_replace(array('ASC','DESC'), array('up','down'), $sort_order); 
-	$asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
-	$add_class = ' class="highlight"';
+    $columns = array('inc_name', 'inc_amount', 'inc_date');
+    $column = isset($_GET['column']) && in_array($_GET['column'], $columns) ? $_GET['column'] : $columns[2];
+    $sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
+
+    $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
+        "FROM income WHERE user_id=$user_id" .
+        " ORDER BY $column $sort_order";
+
+    $income_logs = mysqli_query($connection, $incomes);
+
+    if (!$income_logs) {
+    handle_error("unable to get income data", mysqli_error($connection));
+
+    } else {
+        $up_or_down = str_replace(array('ASC','DESC'), array('up','down'), $sort_order); 
+        $asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
+        $add_class = ' class="highlight"';
+    }
 }
 
 //get expenses transaction logs
-$columns_exp = array('exp_name', 'exp_amount', 'exp_date');
-$column = isset($_GET['column']) && in_array($_GET['column'], $columns_exp) ? $_GET['column'] : $columns_exp[2];
-$sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
 
-if ($_REQUEST['column']) {
-    $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
-        "FROM expenses WHERE user_id=$user_id " .
-        "ORDER BY $column $sort_order";
-} else {
+if (!isset($_REQUEST['column'])) {
     $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
     "FROM expenses" .
     " WHERE user_id=$user_id";
-}
 
-$expenses_logs = mysqli_query($connection, $expenses);
+    $expenses_logs = mysqli_query($connection, $expenses);
+    if (!$expenses_logs) {
+        handle_error("unable to get expenses data", mysqli_error($connection));
+    } else {
+        $add_class = ' class="highlight"';
+        $asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
+    }
 
-if (!$expenses_logs) {
-    handle_error("unable to get expenses data", mysqli_error($connection));
 } else {
-    $up_or_down = str_replace(array('ASC','DESC'), array('up','down'), $sort_order); 
-	$asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
-	$add_class = ' class="highlight"';
+    $columns_exp = array('exp_name', 'exp_amount', 'exp_date');
+    $column = isset($_GET['column']) && in_array($_GET['column'], $columns_exp) ? $_GET['column'] : $columns_exp[2];
+    $sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
+
+    $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
+        "FROM expenses WHERE user_id=$user_id " .
+        "ORDER BY $column $sort_order";
+    
+    $expenses_logs = mysqli_query($connection, $expenses);
+
+    if (!$expenses_logs) {
+        handle_error("unable to get expenses data", mysqli_error($connection));
+    } else {
+        $up_or_down = str_replace(array('ASC','DESC'), array('up','down'), $sort_order); 
+        $asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
+        $add_class = ' class="highlight"';
+    }   
 }
 
 $total_income = get_total_income($connection, $user_id);
 $total_expenses = get_total_expenses($connection, $user_id);
+//$date = make_monthly_expenses();
 ?>
 
 <!DOCTYPE html>
@@ -91,6 +112,7 @@ $total_expenses = get_total_expenses($connection, $user_id);
     <div class="text-center">
         <h1><?php echo 'Welcome' . ' ' . $username; ?></h1>
         <P><?php echo date("Y-m-d H:i"); ?></p>
+        
 
     </div>
     <div id="account_balance">
@@ -126,7 +148,7 @@ $total_expenses = get_total_expenses($connection, $user_id);
                 <tr>
                     <td<?php echo $column = 'inc_name' ? $add_class : '' ;?>><a href="../scripts/transaction_card.php?trans_type=income&trans_id=<?php echo $row['inc_id']; ?>"><?php echo $row['inc_name']; ?></a</td>
                     <td<?php echo $column = 'inc_amount' ? $add_class : '' ;?>><?php echo $row['inc_amount']; ?></td>
-                    <td<?php echo $column = 'inc_date' ? $add_class : ''; ?>><?php echo $row['inc_date']; ?></td>
+                    <td<?php echo $column = 'inc_date' ? $add_class : '' ;?>><?php echo $row['inc_date']; ?></td>
                 </tr>
                 <?php endwhile; ?>
             </tbody>
