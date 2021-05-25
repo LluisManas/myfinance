@@ -6,6 +6,7 @@ require_once('../scripts/message.php');
 require_once('../scripts/navbar.php');
 //require_once('../scripts/transaction_logs.php');
 require_once('../scripts/total_income.php');
+require_once('../scripts/filter.php');
 //require_once('../scripts/monthly_expenses.php');
 
 if (!isset($_COOKIE['user_id'])) {
@@ -105,6 +106,9 @@ if (!isset($_REQUEST['exp_column'])) {
 $total_income = get_total_income($connection, $user_id);
 $total_expenses = get_total_expenses($connection, $user_id);
 //$date = make_monthly_expenses();
+
+$test = filter_by_date('04');
+var_dump($test); 
 ?>
 
 <!DOCTYPE html>
