@@ -33,7 +33,7 @@ if (!isset($_COOKIE['user_id'])) {
 
 //get income transaction logs
 //sort and filter income table
-if (!isset($_REQUEST['column'])) {
+if (!isset($_REQUEST['inc_column'])) {
     $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
         "FROM income " .
         "WHERE user_id=$user_id";
@@ -45,9 +45,9 @@ if (!isset($_REQUEST['column'])) {
         $add_class = ' class="highlight"';
         $asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
     }
-} else {
+} elseif ($_REQUEST['inc_column']) {
     $columns = array('inc_name', 'inc_amount', 'inc_date');
-    $column = isset($_GET['column']) && in_array($_GET['column'], $columns) ? $_GET['column'] : $columns[2];
+    $column = isset($_GET['inc_column']) && in_array($_GET['inc_column'], $columns) ? $_GET['inc_column'] : $columns[2];
     $sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
 
     $incomes = "SELECT inc_id, inc_name, inc_amount, inc_date " .
@@ -68,7 +68,7 @@ if (!isset($_REQUEST['column'])) {
 
 //get expenses transaction logs
 
-if (!isset($_REQUEST['column'])) {
+if (!isset($_REQUEST['exp_column'])) {
     $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
     "FROM expenses" .
     " WHERE user_id=$user_id";
@@ -78,12 +78,13 @@ if (!isset($_REQUEST['column'])) {
         handle_error("unable to get expenses data", mysqli_error($connection));
     } else {
         $add_class = ' class="highlight"';
+       
         $asc_or_desc = $sort_order == 'ASC' ? 'desc' : 'asc';
     }
 
-} else {
+} elseif ($_REQUEST['exp_column'])  {
     $columns_exp = array('exp_name', 'exp_amount', 'exp_date');
-    $column = isset($_GET['column']) && in_array($_GET['column'], $columns_exp) ? $_GET['column'] : $columns_exp[2];
+    $column = isset($_GET['exp_column']) && in_array($_GET['exp_column'], $columns_exp) ? $_GET['exp_column'] : $columns_exp[2];
     $sort_order = isset($_GET['order']) && strtolower($_GET['order']) == 'desc' ? 'DESC' : 'ASC';
 
     $expenses = "SELECT exp_id, exp_name, exp_amount, exp_date " .
@@ -138,9 +139,9 @@ $total_expenses = get_total_expenses($connection, $user_id);
         <table class="table table-success table-sm col-md-4">
             <thead class="thead-light">
                 <tr>
-                    <th scope="col"><a href="user_dashboard.php?column=inc_name&order=<?php echo $asc_or_desc; ?>">Name<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
-                    <th scope="col"><a href="user_dashboard.php?column=inc_amount&order=<?php echo $asc_or_desc; ?>">Amount<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
-                    <th scope="col"><a href="user_dashboard.php?column=inc_date&order=<?php echo $asc_or_desc; ?>">Date<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?inc_column=inc_name&order=<?php echo $asc_or_desc; ?>">Name<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?inc_column=inc_amount&order=<?php echo $asc_or_desc; ?>">Amount<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?inc_column=inc_date&order=<?php echo $asc_or_desc; ?>">Date<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
                 </tr>
             </thead>
             <?php while ($row = mysqli_fetch_assoc($income_logs)): ?>
@@ -159,9 +160,9 @@ $total_expenses = get_total_expenses($connection, $user_id);
         <table class="table table-danger table-sm col-md-4">
             <thead class="thead-light">
                 <tr>
-                    <th scope="col"><a href="user_dashboard.php?column=exp_name&order=<?php echo $asc_or_desc; ?>">Name<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
-                    <th scope="col"><a href="user_dashboard.php?column=exp_amount&order=<?php echo $asc_or_desc; ?>">Amount<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
-                    <th scope="col"><a href="user_dashboard.php?column=exp_date&order=<?php echo $asc_or_desc; ?>">Date<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?exp_column=exp_name&order=<?php echo $asc_or_desc; ?>">Name<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?exp_column=exp_amount&order=<?php echo $asc_or_desc; ?>">Amount<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
+                    <th scope="col"><a href="user_dashboard.php?exp_column=exp_date&order=<?php echo $asc_or_desc; ?>">Date<i class="fas fa-sort<?php echo $column == 'name' ? '-' . $up_or_down : ''; ?>"></i></a></th>
                 </tr>
             </thead>
             <tbody>
